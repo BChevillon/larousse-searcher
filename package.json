@@ -1,0 +1,28 @@
+{
+  "name": "larousse-searcher",
+  "version": "1.0.0",
+  "description": "A module to search for a word in the Larousse dictionary : origin, definitions, synonyms, antonyms, infinitive, etc.",
+  "author": "Benoit CHEVILLON <benoit.chevillon6@gmail.com>",
+  "license": "CC-BY-SA-4.0",
+  "bugs": {
+    "url": "https://github.com/BChevillon/larousse-searcher/issues"
+  },
+  "repository": "github:BChevillon/larousse-searcher",
+  "homepage": "https://github.com/BChevillon/larousse-searcher#readme",
+  "main": "utils.js",
+  "type": "module",
+  "keywords": [
+    "larousse",
+    "dictionary",
+    "french",
+    "words",
+    "definitions",
+    "synonyms",
+    "antonyms",
+    "web-scraping"
+  ],
+  "dependencies": {
+    "axios": "^1.4.0",
+    "cheerio": "^1.0.0-rc.12"
+  }
+}

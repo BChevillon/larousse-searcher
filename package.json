@@ -1,6 +1,6 @@
 {
   "name": "larousse-searcher",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A module to search for a word in the Larousse dictionary : origin, definitions, synonyms, antonyms, infinitive, etc.",
   "author": "Benoit CHEVILLON <benoit.chevillon6@gmail.com>",
   "license": "CC-BY-SA-4.0",

@@ -46,7 +46,7 @@ const getSuggestions = (content, exist) => {
         ".wrapper-search > article:not(.sel) ~ .banner-title > .item-result > a" +
         ", .wrapper-search > section:not(.banner-title ~ section) > article:not(.sel, .sous-article) > .item-result > a"
         : ".corrector > ul > li > h3 > a"
-    content(selector).each((i, elem) => {
+    content(selector).each((_, elem) => {
         const suggestion = {
             word: elem.children[0].data.trim(),
             url: resolve(LAROUSSE_URL, elem.attribs.href)
@@ -73,7 +73,7 @@ const getGramCat = (content) => {
  */
 const getWords = (content) => {
     const words = []
-    content(".Zone-Entree1 > h2").each((i, wordsCats) => {
+    content(".Zone-Entree1 > h2").each((_, wordsCats) => {
         const wordsCat = []
         wordsCats.children.forEach((child) => {
             if (child.type == "text" && !child.data.includes("\n"))
@@ -111,7 +111,7 @@ const getOrigin = (content) => {
  */
 const getDefinitionsList = (content) => {
     const list = []
-    content(".Definitions > .DivisionDefinition").each((i, defContent) => {
+    content(".Definitions:first-of-type > .DivisionDefinition").each((_, defContent) => {
         const definition = getDefinition(defContent)
         list.push(definition)
     })
@@ -120,7 +120,7 @@ const getDefinitionsList = (content) => {
 
 /**
  * Get a definition from the Larousse dictionary.
- * @param {string} content - The HTML content of div with class "DivisionDefinition" on the Larousse dictionnary.
+ * @param {string} content - The HTML content of the first div with class "DivisionDefinition" on the Larousse dictionnary.
  * @return {{num: number, definition: string, examples: Array<string>, synonyms: Array<{word: string, url: string, info: string}>,
  *  antonyms: Array<{word: string, url: string, info: string}}} The definition.
  */
@@ -134,10 +134,12 @@ const getDefinition = (defContent) => {
     }
     defContent.children.forEach((child) => {
         if (child.type == "text" && !child.data.includes("\n") && child.data.trim() != "")
-            definition.definition = child.data.trim().replace("\u00a0:", "")
+            definition.definition += child.data
         else if (child.type == "tag") {
             if (child.attribs.class == "numDef")
                 definition.num = child.children[0].data.trim().split(".")[0]
+            else if (child.attribs.class == "Renvois")
+                definition.definition += child.children[0].children[0].data.trim()
             else if (child.attribs.class == "ExempleDefinition")
                 definition.examples.push(child.children[0].data.trim())
             else if (child.attribs.class == "Synonymes") { // Synonyms and antonyms both use the "Synonyms" class
@@ -146,6 +148,7 @@ const getDefinition = (defContent) => {
             }
         }
     })
+    definition.definition = definition.definition.replace("\u00a0:", "").trim()
     return definition
 }
 
@@ -189,7 +192,7 @@ const getTextOnyms = (onymsTextElem) => {
             onym.word = word.trim()
             if (word == onymsTextList[onymsTextList.length - 1] && onymsTextElem.next)
                 if (onymsTextElem.next.type == "tag" && onymsTextElem.next.attribs.class == "indicateurDefinition") 
-                    onym.info = onymsTextElem.next.children[0].data.trim().replace(/\(|\)/g, "")
+                    onym.info = onymsTextElem.next.children[0].data.replace(/\(|\)/g, "").trim()
             onyms.push(onym)
         }
     })
@@ -221,31 +224,29 @@ const getDefinitions = (content) => {
  *  synonyms: Array<{word: string, url: string, info: string}>, antonyms: Array<{word: string, url: string, info: string}>}>},
  *  suggestions: Array<{word: string, url: string}>}>} The data on the word.
  */
-   const search = async (word) => {
-     try {
-       const page = await getPage(word)
-       const content = load(page.data)
-       const url = page.request.res.responseUrl
-       const find = url.endsWith(word) ? false : true
-       const wordFind = find ? getWord(url) : word
-       const definitions = find ? getDefinitions(content) : {}
-       const suggestions = getSuggestions(content, find)
+const search = async (word) => {
+    try {
+        const page = await getPage(word)
+        const content = load(page.data)
+        const url = page.request.res.responseUrl
+        const find = url.endsWith(word) ? false : true
+        const wordFind = find ? getWord(url) : word
+        const definitions = find ? getDefinitions(content) : {}
+        const suggestions = getSuggestions(content, find)
 
-       const response = {
-         find: find,
-         word: wordFind,
-         url: url,
-         definitions: definitions,
-         suggestions: suggestions,
-       }
-   
-       return response
-     } catch (error) {
-       const message = `Failed to get data for word "${word}" : the larousse website may be unavailable or modified.`
-       throw new Error(message, { cause: error })
-     }
-   }
+        const response = {
+            find: find,
+            word: wordFind,
+            url: url,
+            definitions: definitions,
+            suggestions: suggestions,
+        }
 
-console.log(JSON.stringify(await search("bonjour"), null, 4))
+        return response
+    } catch (error) {
+        const message = `Failed to get data for word "${word}" : the larousse website may be unavailable or modified.`
+        throw new Error(message, { cause: error })
+    }
+}
 
 export default { search }

@@ -22,7 +22,7 @@ import larousseSearcher from "larousse-searcher"
 
 async function main() {
   try {
-    const word = 'dormir' // The word you want to search for
+    const word = 'développer' // The word you want to search for
     const result = await larousseSearcher.search(word)
 
     if (result.find) {
